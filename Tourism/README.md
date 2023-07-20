@@ -39,9 +39,15 @@ Edit this file with your answers.
 
 2. How does a form submission know what request should be made? Use examples.
 
+    It knows what request should be made because it is defined in the view as a method.
+    (ex. form method="post" action="/movies/@Model.Id/reviews")
+
 3. Imagine you are explaining how to create a resource to a co-worker.  How would you describe how the controller action `Create` works?
 
+    The Create action takes the user input from the form and creates a new object that gets saved to the database.
+
 4. In our State creation functionality - what would happen if a user did not enter an Abbreviation before submitting the form?
+
 
 
 ## Rubric

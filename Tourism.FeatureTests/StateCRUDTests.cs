@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using Tourism.DataAccess;
 using Tourism.Models;
 
@@ -62,5 +63,37 @@ namespace Tourism.FeatureTests
 
             return context;
         }
+
+        [Fact]
+        public async void New_ReturnsView()
+        {
+            var client = _factory.CreateClient();
+
+            var response = await client.GetAsync("/states/new");
+            var html = await response.Content.ReadAsStringAsync();
+
+            Assert.Contains("Add a State", html);
+            Assert.Contains("Name:", html);
+            Assert.Contains("Abbreviation:", html);
+            Assert.Contains("<form method=\"post\" action=\"/states\">", html);
+        }
+
+        [Fact]
+        public async void Index_AddsMovieRedirect()
+        {
+            var client = _factory.CreateClient();
+
+            var addStateData = new Dictionary<string, string>
+            {
+                {"Name", "California" },
+                {"Abbreviation", "CA" }
+            };
+
+            var response = await client.PostAsync("/states", new FormUrlEncodedContent(addStateData));
+            var html = await response.Content.ReadAsStringAsync();
+
+            Assert.Contains("States", html);
+        }
+
     }
 }

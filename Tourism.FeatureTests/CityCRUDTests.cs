@@ -20,25 +20,43 @@ namespace Tourism.FeatureTests
             _factory = factory;
         }
 
+        private TourismContext GetDbContext()
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<TourismContext>();
+            optionsBuilder.UseInMemoryDatabase("TestDatabase");
+
+            var context = new TourismContext(optionsBuilder.Options);
+            context.Database.EnsureDeleted();
+            context.Database.EnsureCreated();
+
+            return context;
+        }
+
         [Fact]
-        public async void Index_IncludesLinktoNew()
+        public async Task Index_IncludesLinktoNew()
         {
             var context = GetDbContext();
             var client = _factory.CreateClient();
 
-            context.States.Add(new State { Name = "Iowa", Abbreviation = "IA" });
+            State state = new State { Name = "California", Abbreviation = "CA"};
+            City city = new City { Name = "Irvine" };
+            state.Cities.Add(city);
+            context.States.Add(state);
             context.SaveChanges();
 
-            var response = await client.GetAsync("/states/1/cities");
+            var response = await client.GetAsync($"/states/{state.Id}/cities");
             var html = await response.Content.ReadAsStringAsync();
 
-            var expectedLink = "<a href=\"/states/1/cities/new\">New City</a>";
+            var expectedLink = "<a href='/states/1/cities/new'>Irvine</a>";
+
+            Assert.Contains(state.Name, html);
+            Assert.Contains(state.Abbreviation, html);
 
             Assert.Contains(expectedLink, html);
         }
 
         [Fact]
-        public async void New_ReturnsNewForm()
+        public async Task New_ReturnsNewForm()
         {
             var context = GetDbContext();
             var client = _factory.CreateClient();
@@ -54,7 +72,7 @@ namespace Tourism.FeatureTests
         }
 
         [Fact]
-        public async void Create_AddsCityToDatabase()
+        public async Task Create_AddsCityToDatabase()
         {
             var context = GetDbContext();
             var client = _factory.CreateClient();
@@ -78,16 +96,5 @@ namespace Tourism.FeatureTests
             Assert.Equal("Des Moines", context.Cities.First().Name);
         }
 
-        private TourismContext GetDbContext()
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<TourismContext>();
-            optionsBuilder.UseInMemoryDatabase("TestDatabase");
-
-            var context = new TourismContext(optionsBuilder.Options);
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
-
-            return context;
-        }
     }
 }
